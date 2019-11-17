@@ -134,7 +134,7 @@
         <item>
          <widget class="QLabel" name="label_7">
           <property name="text">
-           <string>Box Border W.</string>
+           <string>Border Width</string>
           </property>
          </widget>
         </item>
@@ -148,7 +148,7 @@
         <item>
          <widget class="QLabel" name="label_10">
           <property name="text">
-           <string>Box Color</string>
+           <string>Border Color</string>
           </property>
          </widget>
         </item>
