@@ -7,17 +7,17 @@
     <x>0</x>
     <y>0</y>
     <width>680</width>
-    <height>480</height>
+    <height>489</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>ffplayout Messenger</string>
+  </property>
+  <property name="locale">
+   <locale language="English" country="Germany"/>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0" colspan="3">
-     <widget class="QTextEdit" name="text_area"/>
-    </item>
     <item row="1" column="0">
      <widget class="QLabel" name="text_label">
       <property name="text">
@@ -25,26 +25,22 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="1">
-     <widget class="QLabel" name="box_label">
-      <property name="text">
-       <string>Box</string>
-      </property>
-     </widget>
+    <item row="0" column="0" colspan="5">
+     <widget class="QTextEdit" name="text_area"/>
     </item>
     <item row="2" column="0">
      <layout class="QVBoxLayout" name="text_layout_group">
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QLabel" name="label">
+         <widget class="QLabel" name="label_x">
           <property name="text">
            <string>X</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit">
+         <widget class="QLineEdit" name="text_x_pos">
           <property name="enabled">
            <bool>true</bool>
           </property>
@@ -55,42 +51,42 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="QLabel" name="label_2">
+         <widget class="QLabel" name="label_y">
           <property name="text">
            <string>Y</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit_2"/>
+         <widget class="QLineEdit" name="text_y_pos"/>
         </item>
        </layout>
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
-         <widget class="QLabel" name="label_4">
+         <widget class="QLabel" name="label_font_color">
           <property name="text">
            <string>Font Color</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit_3"/>
+         <widget class="QLineEdit" name="text_font_color"/>
         </item>
        </layout>
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
-         <widget class="QLabel" name="label_5">
+         <widget class="QLabel" name="label_font_size">
           <property name="text">
            <string>Font Size</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="spinBox">
+         <widget class="QSpinBox" name="spin_font_size">
           <property name="value">
            <number>24</number>
           </property>
@@ -100,7 +96,7 @@
       </item>
      </layout>
     </item>
-    <item row="2" column="1" colspan="2">
+    <item row="2" column="1" colspan="4">
      <layout class="QVBoxLayout" name="box_layout_group">
       <item>
        <widget class="QCheckBox" name="activate_box">
@@ -118,42 +114,42 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_5">
         <item>
-         <widget class="QLabel" name="label_6">
+         <widget class="QLabel" name="label_box_color">
           <property name="text">
            <string>Box Color</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit_4"/>
+         <widget class="QLineEdit" name="text_box_color"/>
         </item>
        </layout>
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_6">
         <item>
-         <widget class="QLabel" name="label_7">
+         <widget class="QLabel" name="label_border_width">
           <property name="text">
            <string>Border Width</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="spinBox_2"/>
+         <widget class="QSpinBox" name="spin_border_width"/>
         </item>
        </layout>
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_8">
         <item>
-         <widget class="QLabel" name="label_10">
+         <widget class="QLabel" name="label_border_color">
           <property name="text">
            <string>Border Color</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit_6">
+         <widget class="QLineEdit" name="text_border_color">
           <property name="enabled">
            <bool>true</bool>
           </property>
@@ -163,10 +159,55 @@
       </item>
      </layout>
     </item>
-    <item row="3" column="2">
-     <widget class="QPushButton" name="send_utton">
+    <item row="3" column="0" colspan="5">
+     <layout class="QHBoxLayout" name="horizontalLayout_7">
+      <item>
+       <widget class="QLabel" name="label_alpha">
+        <property name="text">
+         <string>Alpha</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="text_alpha"/>
+      </item>
+     </layout>
+    </item>
+    <item row="4" column="0">
+     <widget class="QComboBox" name="combo_presets"/>
+    </item>
+    <item row="4" column="1">
+     <widget class="QPushButton" name="button_save">
+      <property name="text">
+       <string>Save</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="4">
+     <widget class="QPushButton" name="button_send">
       <property name="text">
        <string>Send</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="3">
+     <widget class="QPushButton" name="button_preview">
+      <property name="text">
+       <string>Preview</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QLabel" name="box_label">
+      <property name="text">
+       <string>Box</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="2">
+     <widget class="Line" name="line">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
       </property>
      </widget>
     </item>
@@ -181,8 +222,44 @@
      <height>29</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menu_file">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="action_save"/>
+    <addaction name="separator"/>
+    <addaction name="action_quit"/>
+   </widget>
+   <widget class="QMenu" name="menu_help">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="action_examples"/>
+   </widget>
+   <addaction name="menu_file"/>
+   <addaction name="menu_help"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="action_save">
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </action>
+  <action name="actionQuit_2">
+   <property name="text">
+    <string>Quit</string>
+   </property>
+  </action>
+  <action name="action_quit">
+   <property name="text">
+    <string>Quit</string>
+   </property>
+  </action>
+  <action name="action_examples">
+   <property name="text">
+    <string>Examples</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
