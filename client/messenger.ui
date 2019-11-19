@@ -72,6 +72,25 @@
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="botton_font_color">
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QLineEdit" name="text_font_color"/>
         </item>
        </layout>
@@ -121,6 +140,25 @@
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="botton_box_color">
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QLineEdit" name="text_box_color"/>
         </item>
        </layout>
@@ -145,6 +183,25 @@
          <widget class="QLabel" name="label_border_color">
           <property name="text">
            <string>Border Color</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="botton_border_color">
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string/>
           </property>
          </widget>
         </item>
