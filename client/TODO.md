@@ -4,3 +4,4 @@ TODO:
 - [ ] expression examples
 - [ ] config file
 - [ ] preview with ffplay
+- [ ] scheduler?
