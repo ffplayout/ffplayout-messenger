@@ -1,0 +1,11 @@
+{
+    "text": "The upcoming event will be delayed by a few minutes.",
+    "x": "(w-text_w)/2",
+    "y": "(h-line_h)*0.9",
+    "fontcolor": "#ffffff@0xff",
+    "fontsize": 18,
+    "alpha": "ifnot(ld(1),st(1,t));if(lt(t,ld(1)+1),0,if(lt(t,ld(1)+2),(t-(ld(1)+1))/1,if(lt(t,ld(1)+8),1,if(lt(t,ld(1)+9),(1-(t-(ld(1)+8)))/1,0))))",
+    "box": 1,
+    "boxcolor": "#000000@0x80",
+    "boxborderw": 4
+}
