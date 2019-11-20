@@ -180,37 +180,17 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_8">
         <item>
-         <widget class="QLabel" name="label_border_color">
-          <property name="text">
-           <string>Border Color</string>
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
           </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="botton_border_color">
-          <property name="minimumSize">
+          <property name="sizeHint" stdset="0">
            <size>
-            <width>40</width>
-            <height>0</height>
+            <width>20</width>
+            <height>40</height>
            </size>
           </property>
-          <property name="maximumSize">
-           <size>
-            <width>40</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="text_border_color">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-         </widget>
+         </spacer>
         </item>
        </layout>
       </item>
