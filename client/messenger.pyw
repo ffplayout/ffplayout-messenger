@@ -148,11 +148,6 @@ class MainForm(QObject):
         self.context = zmq.Context()
         self.port = "5555"
 
-        # load default text preset
-        with open(os.path.join(self.root_path, 'presets',
-                               'default.json')) as f:
-            self.set_content(json.load(f))
-
         self.list_presets()
 
         self.window.installEventFilter(self)
@@ -207,8 +202,8 @@ class MainForm(QObject):
         presets = []
         index = 0
 
-        for idx, preset in enumerate(glob.glob(
-                os.path.join(self.root_path, 'presets', '*.json'))):
+        for idx, preset in enumerate(sorted(glob.glob(
+                os.path.join(self.root_path, 'presets', '*.json')))):
             name = os.path.basename(preset)
             presets.append(name)
 
