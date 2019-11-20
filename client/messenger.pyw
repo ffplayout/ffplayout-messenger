@@ -7,6 +7,7 @@ import json
 import os
 import sys
 from functools import partial
+from platform import system
 from subprocess import Popen, PIPE
 from time import sleep
 from types import SimpleNamespace
@@ -52,11 +53,16 @@ class Worker(QObject):
         while self.is_running:
             run = self._queue.get()
             if run:
+                win_arg = {}
+                if system() == "Windows":
+                    # prevent terminal open
+                    win_arg['creationflags'] = 0x08000000
+
                 drawt = "drawtext=text='':fontfile='{}'".format(_config.font)
                 cmd = ([_config.ffplay, '-hide_banner', '-nostats']
                        + self.input + ['-vf', "scale='{}:{}',zmq,{}".format(
                         _config.width, _config.height, drawt)])
-                self._proc = Popen(cmd, stderr=PIPE)
+                self._proc = Popen(cmd, stderr=PIPE, **self.win_arg)
 
                 for line in self._proc.stderr:
                     print(line.decode())
