@@ -62,7 +62,7 @@ class Worker(QObject):
                 cmd = ([_config.ffplay, '-hide_banner', '-nostats']
                        + self.input + ['-vf', "scale='{}:{}',zmq,{}".format(
                         _config.width, _config.height, drawt)])
-                self._proc = Popen(cmd, stderr=PIPE, **self.win_arg)
+                self._proc = Popen(cmd, stderr=PIPE, **win_arg)
 
                 for line in self._proc.stderr:
                     print(line.decode())
