@@ -56,7 +56,6 @@ class Worker(QObject):
                 for line in self._proc.stderr:
                     print(line.decode())
 
-                self._queue.put(False)
                 print("done...")
 
     def quit(self):
@@ -188,6 +187,7 @@ class MainForm(QObject):
             self.worker_thread.start()
 
         self.filter_queue.put(True)
+        self.filter_queue.put(False)
 
         sleep(1)
 
