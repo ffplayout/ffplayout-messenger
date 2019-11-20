@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import configparser
+import glob
 import json
 import os
 import sys
@@ -15,7 +16,7 @@ from PySide2.QtCore import QCoreApplication, QFile, QObject, Signal, QThread
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import (QAction, QApplication, QCheckBox, QColorDialog,
                                QLabel, QLineEdit, QPushButton, QSpinBox,
-                               QTextEdit)
+                               QTextEdit, QComboBox, QInputDialog)
 import zmq
 
 cfg = configparser.ConfigParser()
@@ -25,7 +26,9 @@ _config = SimpleNamespace(
     color=cfg.get('PREVIEW', 'color'),
     clip=cfg.get('PREVIEW', 'clip'),
     width=cfg.get('PREVIEW', 'width'),
-    height=cfg.get('PREVIEW', 'height')
+    height=cfg.get('PREVIEW', 'height'),
+    font=cfg.get('PREVIEW', 'font'),
+    ffplay=cfg.get('PREVIEW', 'ffplay')
 )
 
 
@@ -47,18 +50,22 @@ class Worker(QObject):
 
     def work(self):
         while self.is_running:
-            if self._queue.get():
-                cmd = ['ffplay', '-hide_banner', '-nostats'] + self.input + [
-                    '-vf', "scale='{}:{}',zmq,drawtext=text=''".format(
-                        _config.width, _config.height)]
+            run = self._queue.get()
+            if run:
+                drawt = "drawtext=text='':fontfile='{}'".format(_config.font)
+                cmd = ([_config.ffplay, '-hide_banner', '-nostats']
+                       + self.input + ['-vf', "scale='{}:{}',zmq,{}".format(
+                        _config.width, _config.height, drawt)])
                 self._proc = Popen(cmd, stderr=PIPE)
 
                 for line in self._proc.stderr:
                     print(line.decode())
 
-                print("done...")
+            sleep(0.5)
 
     def quit(self):
+        if self._proc and self._proc.poll() is None:
+            self._proc.terminate()
         self.is_running = False
 
 
@@ -77,6 +84,8 @@ class MainForm(QObject):
         loader = QUiLoader()
         self.window = loader.load(ui_file)
         ui_file.close()
+
+        self.preset = None
 
         action_quit = self.window.findChild(QAction, 'action_quit')
         action_quit.triggered.connect(self.quit_application)
@@ -113,6 +122,9 @@ class MainForm(QObject):
                                                self.box_color,
                                                self.box_color_t))
 
+        self.combo = self.window.findChild(QComboBox, 'combo_presets')
+        self.combo.currentIndexChanged.connect(self.preset_selector)
+
         self.save = self.window.findChild(QPushButton, 'button_save')
         self.save.clicked.connect(self.save_preset)
 
@@ -135,6 +147,8 @@ class MainForm(QObject):
                                'default.json')) as f:
             self.set_content(json.load(f))
 
+        self.list_presets()
+
         self.window.installEventFilter(self)
         self.window.show()
         self.setParent(self.window)
@@ -150,6 +164,7 @@ class MainForm(QObject):
             text.setText('{}@0x{:02x}'.format(color.name(), color.alpha()))
 
     def set_content(self, preset):
+        self.text.clear()
         self.text.insertPlainText(preset['text'])
         self.pos_x.setText(preset['x'])
         self.pos_y.setText(preset['y'])
@@ -181,15 +196,39 @@ class MainForm(QObject):
 
         return content
 
+    def list_presets(self):
+        self.combo.clear()
+        presets = []
+        index = 0
+
+        for idx, preset in enumerate(glob.glob(
+                os.path.join(self.root_path, 'presets', '*.json'))):
+            name = os.path.basename(preset)
+            presets.append(name)
+
+            if name.rstrip('.json') == self.preset:
+                index = idx
+
+        self.combo.addItems(presets)
+        self.combo.setCurrentIndex(index)
+
+    def preset_selector(self, idx):
+        preset = self.combo.itemText(idx)
+
+        if preset:
+            with open(os.path.join(self.root_path, 'presets', preset)) as f:
+                self.set_content(json.load(f))
+
     def preview_text(self):
         filter_str = ''
         if not self.worker_thread.isRunning():
             self.worker_thread.start()
 
-        self.filter_queue.put(True)
-        self.filter_queue.put(False)
+        if self.filter_queue.empty():
+            self.filter_queue.put(True)
+            self.filter_queue.put(False)
 
-        sleep(1)
+        sleep(0.5)
 
         socket = self.context.socket(zmq.REQ)
         socket.connect("tcp://localhost:{}".format(self.port))
@@ -198,16 +237,30 @@ class MainForm(QObject):
             filter_str += '{}={}:'.format(key, value)
 
         _filter = filter_str.replace(' ', '\\ ').rstrip(':')
-        print(_filter)
         socket.send_string("Parsed_drawtext_2 reinit " + _filter)
 
         message = socket.recv()
         print("Received reply: ", message.decode())
 
     def save_preset(self):
-        print(self.get_content())
+        preset, ok = QInputDialog.getText(self.window, 'Save Preset',
+                                          'Enter preset name:')
+
+        if ok:
+            content = self.get_content()
+            self.preset = preset.rstrip('.json')
+
+            with open(
+                os.path.join(self.root_path, 'presets', self.preset + '.json'
+                             ), 'w') as outfile:
+                json.dump(content, outfile, indent=4)
+
+            self.list_presets()
 
     def quit_application(self):
+        self.worker.quit()
+        self.worker_thread.quit()
+        self.worker_thread.wait()
         QCoreApplication.quit()
 
 
