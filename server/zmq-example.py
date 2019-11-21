@@ -20,11 +20,11 @@ socket = context.socket(zmq.REQ)
 socket.connect("tcp://localhost:{}".format(port))
 
 print("Sending request ...")
-socket.send("Parsed_drawtext_2 reinit "
-            "text='Hello\\ World,\\ whats\\ up?':alpha='"
-            "ifnot(ld(1),st(1,t));if(lt(t,ld(1)+1),0,"
-            "if(lt(t,ld(1)+2),(t-(ld(1)+1))/1,if(lt(t,ld(1)+8),1,"
-            "if(lt(t,ld(1)+9),(1-(t-(ld(1)+8)))/1,0))))'".encode('ascii'))
+socket.send_string("Parsed_drawtext_2 reinit "
+                   "text='Hello\\ World,\nwhats\\ up?':alpha='"
+                   "ifnot(ld(1),st(1,t));if(lt(t,ld(1)+1),0,"
+                   "if(lt(t,ld(1)+2),(t-(ld(1)+1))/1,if(lt(t,ld(1)+8),1,"
+                   "if(lt(t,ld(1)+9),(1-(t-(ld(1)+8)))/1,0))))'")
 message = socket.recv()
 
 print("Received reply: ", message.decode())

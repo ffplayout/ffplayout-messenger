@@ -102,6 +102,9 @@ class MainForm(QObject):
         self.text = self.window.findChild(QTextEdit, 'text_area')
         self.pos_x = self.window.findChild(QLineEdit, 'text_x_pos')
         self.pos_y = self.window.findChild(QLineEdit, 'text_y_pos')
+        self.font_size = self.window.findChild(QSpinBox, 'spin_font_size')
+        self.line_spacing = self.window.findChild(QSpinBox,
+                                                  'spin_line_spacing')
 
         self.font_color = self.window.findChild(QPushButton,
                                                 'botton_font_color')
@@ -111,7 +114,6 @@ class MainForm(QObject):
 
         self.font_color_t = self.window.findChild(QLineEdit, 'text_font_color')
         self.font_color_t.setText('#ffffff')
-        self.font_size = self.window.findChild(QSpinBox, 'spin_font_size')
         self.alpha = self.window.findChild(QLineEdit, 'text_alpha')
 
         self.show_box = self.window.findChild(QCheckBox, 'activate_box')
@@ -169,11 +171,12 @@ class MainForm(QObject):
         self.text.insertPlainText(preset['text'])
         self.pos_x.setText(preset['x'])
         self.pos_y.setText(preset['y'])
+        self.font_size.setValue(preset['fontsize'])
+        self.line_spacing.setValue(preset['line_spacing'])
         self.font_color.setStyleSheet(
             "background-color: {}; border: 0px;".format(
                 preset['fontcolor'].split('@')[0]))
         self.font_color_t.setText(preset['fontcolor'])
-        self.font_size.setValue(preset['fontsize'])
         self.alpha.setText(preset['alpha'])
         self.show_box.setChecked(preset['box'])
         self.box_color.setStyleSheet(
@@ -187,8 +190,9 @@ class MainForm(QObject):
             'text': self.text.toPlainText(),
             'x': self.pos_x.text(),
             'y': self.pos_y.text(),
-            'fontcolor': self.font_color_t.text(),
             'fontsize': self.font_size.value(),
+            'line_spacing': self.line_spacing.value(),
+            'fontcolor': self.font_color_t.text(),
             'alpha': self.alpha.text(),
             'box': 1 if self.show_box.isChecked() else 0,
             'boxcolor': self.box_color_t.text(),
@@ -235,10 +239,10 @@ class MainForm(QObject):
         socket.connect("tcp://localhost:{}".format(self.port))
 
         for key, value in self.get_content().items():
-            filter_str += '{}={}:'.format(key, value)
+            filter_str += "{}='{}':".format(key, value)
 
         _filter = filter_str.replace(' ', '\\ ').rstrip(':')
-        socket.send_string("Parsed_drawtext_2 reinit " + _filter)
+        socket.send_string(("Parsed_drawtext_2 reinit " + _filter))
 
         message = socket.recv()
         print("Received reply: ", message.decode())
