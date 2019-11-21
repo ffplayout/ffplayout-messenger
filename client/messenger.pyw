@@ -174,20 +174,23 @@ class MainForm(QObject):
         self.font_size.setValue(preset['fontsize'])
         self.line_spacing.setValue(preset['line_spacing'])
         self.font_color.setStyleSheet(
-            "background-color: {}; border: 0px;".format(
+            "background-color: {};".format(
                 preset['fontcolor'].split('@')[0]))
         self.font_color_t.setText(preset['fontcolor'])
         self.alpha.setText(preset['alpha'])
         self.show_box.setChecked(preset['box'])
         self.box_color.setStyleSheet(
-            "background-color: {}; border: 0px;".format(
+            "background-color: {};".format(
                 preset['boxcolor'].split('@')[0]))
         self.box_color_t.setText(preset['boxcolor'])
         self.border_w.setValue(preset['boxborderw'])
 
     def get_content(self):
+        text_fmt = self.text.toPlainText().replace('\\', '\\\\\\\\')\
+            .replace("'", "\u2019")\
+            .replace(' ', '\\ ').replace('%', '\\\\%').replace(':', '\\:')
         content = {
-            'text': self.text.toPlainText(),
+            'text': text_fmt,
             'x': self.pos_x.text(),
             'y': self.pos_y.text(),
             'fontsize': self.font_size.value(),
@@ -241,8 +244,10 @@ class MainForm(QObject):
         for key, value in self.get_content().items():
             filter_str += "{}='{}':".format(key, value)
 
-        _filter = filter_str.replace(' ', '\\ ').rstrip(':')
-        socket.send_string(("Parsed_drawtext_2 reinit " + _filter))
+        print(filter_str)
+
+        socket.send_string(
+            "Parsed_drawtext_2 reinit " + filter_str.rstrip(':'))
 
         message = socket.recv()
         print("Received reply: ", message.decode())
