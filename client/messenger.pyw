@@ -4,21 +4,24 @@
 import configparser
 import glob
 import json
+import logging
 import os
 import sys
 from functools import partial
+from logging.handlers import TimedRotatingFileHandler
 from platform import system
-from subprocess import Popen, PIPE
+from queue import Queue
+from subprocess import PIPE, Popen
 from time import sleep
 from types import SimpleNamespace
-from queue import Queue
 
-from PySide2.QtCore import QCoreApplication, QFile, QObject, Signal, QThread
+import zmq
+from PySide2.QtCore import (QCoreApplication, QFile, QObject, QThread,
+                            Signal, Slot)
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import (QAction, QApplication, QCheckBox, QColorDialog,
-                               QLabel, QLineEdit, QPushButton, QSpinBox,
-                               QTextEdit, QComboBox, QInputDialog)
-import zmq
+                               QComboBox, QInputDialog, QLabel, QLineEdit,
+                               QPushButton, QSpinBox, QTextEdit, QMessageBox)
 
 cfg = configparser.ConfigParser()
 cfg.read(os.path.join(os.path.dirname(__file__), 'messenger.ini'))
@@ -32,9 +35,36 @@ _config = SimpleNamespace(
     ffplay=cfg.get('PREVIEW', 'ffplay')
 )
 
+_log = SimpleNamespace(
+    level=cfg.get('LOGGING', 'log_level'),
+    path=os.path.join(os.path.dirname(__file__), 'log', 'messenger.log')
+)
 
-# Inherit from QThread
+_server = SimpleNamespace(
+    address=cfg.get('SERVER', 'address'),
+    port=cfg.get('SERVER', 'port')
+)
+
+# check if log folder exists and create it if not
+if not os.path.isdir(os.path.dirname(_log.path)):
+    os.mkdir(os.path.dirname(_log.path))
+
+
+logger = logging.getLogger('messenger')
+logger.setLevel(_log.level)
+formatter = logging.Formatter('[%(asctime)s] [%(levelname)s]  %(message)s')
+file_handler = TimedRotatingFileHandler(_log.path, when='midnight',
+                                        backupCount=5)
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
+
 class Worker(QObject):
+    """
+    preview worker thread,
+    here we start ffplay for previewing drawtext
+    """
+
     std_error = Signal(str)
 
     def __init__(self, queue):
@@ -65,7 +95,7 @@ class Worker(QObject):
                 self._proc = Popen(cmd, stderr=PIPE, **win_arg)
 
                 for line in self._proc.stderr:
-                    print(line.decode())
+                    self.std_error.emit(line.decode().strip())
 
             sleep(0.5)
 
@@ -145,6 +175,7 @@ class MainForm(QObject):
         self.worker_thread = QThread()
         self.worker_thread.started.connect(self.worker.work)
         self.worker.moveToThread(self.worker_thread)
+        self.worker.std_error.connect(self.preview_log)
 
         # zmq sender
         self.context = zmq.Context()
@@ -155,6 +186,24 @@ class MainForm(QObject):
         self.window.installEventFilter(self)
         self.window.show()
         self.setParent(self.window)
+
+    @Slot(str)
+    def preview_log(self, log):
+        logger.error(log)
+        self.show_dialog(
+            'error', '<strong>drawtext syntax error:</strong><br /> {}'.format(
+                log))
+
+    def show_dialog(self, level, message):
+        """
+        Show the information, warning and critical message
+        """
+        if level == "error":
+            QMessageBox.critical(self.window, "Error", message)
+        if level == "info":
+            QMessageBox.information(self.window, "Information", message)
+        if level == "warning":
+            QMessageBox.warning(self.window, "Warning", message)
 
     def change_color(self, btn, text):
         color = QColorDialog.getColor(initial='#ffffff', parent=None,
@@ -244,13 +293,13 @@ class MainForm(QObject):
         for key, value in self.get_content().items():
             filter_str += "{}='{}':".format(key, value)
 
-        print(filter_str)
+        logger.debug(filter_str)
 
         socket.send_string(
             "Parsed_drawtext_2 reinit " + filter_str.rstrip(':'))
 
         message = socket.recv()
-        print("Received reply: ", message.decode())
+        logger.info("Received reply: {}".format(message.decode()))
 
     def save_preset(self):
         preset, ok = QInputDialog.getText(self.window, 'Save Preset',
