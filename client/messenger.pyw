@@ -89,7 +89,8 @@ class Worker(QObject):
                     win_arg['creationflags'] = 0x08000000
 
                 drawt = "drawtext=text='':fontfile='{}'".format(_config.font)
-                cmd = ([_config.ffplay, '-hide_banner', '-nostats']
+                cmd = ([_config.ffplay, '-hide_banner', '-nostats',
+                        '-v', 'error']
                        + self.input + ['-vf', "scale='{}:{}',zmq,{}".format(
                         _config.width, _config.height, drawt)])
                 self._proc = Popen(cmd, stderr=PIPE, **win_arg)
@@ -215,6 +216,10 @@ class MainForm(QObject):
                 "background-color: {}".format(color.name()))
             text.setText('{}@0x{:02x}'.format(color.name(), color.alpha()))
 
+    def check_empty(self, key, value):
+        if not value or value == 0 or value == '0':
+            self.show_dialog('warning', 'Value "{}" is empty!'.format(key))
+
     def set_content(self, preset):
         self.text.clear()
         self.text.insertPlainText(preset['text'])
@@ -238,6 +243,12 @@ class MainForm(QObject):
         text_fmt = self.text.toPlainText().replace('\\', '\\\\\\\\')\
             .replace("'", "\u2019")\
             .replace(' ', '\\ ').replace('%', '\\\\%').replace(':', '\\:')
+
+        self.check_empty('X', self.pos_x.text())
+        self.check_empty('Y', self.pos_y.text())
+        self.check_empty('fontsize', self.font_size.value())
+        self.check_empty('alpha', self.alpha.text())
+
         content = {
             'text': text_fmt,
             'x': self.pos_x.text(),
