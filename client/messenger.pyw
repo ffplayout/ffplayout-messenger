@@ -6,6 +6,7 @@ import glob
 import json
 import logging
 import os
+import re
 import sys
 from functools import partial
 from logging.handlers import TimedRotatingFileHandler
@@ -16,12 +17,14 @@ from time import sleep
 from types import SimpleNamespace
 
 import zmq
-from PySide2.QtCore import (QCoreApplication, QFile, QObject, QThread,
-                            Signal, Slot)
+from PySide2.QtCore import (QCoreApplication, QFile, QObject, QThread, Signal,
+                            Slot, Qt)
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import (QAction, QApplication, QCheckBox, QColorDialog,
-                               QComboBox, QInputDialog, QLabel, QLineEdit,
-                               QPushButton, QSpinBox, QTextEdit, QMessageBox)
+                               QComboBox, QDialog, QInputDialog, QLabel,
+                               QLineEdit, QMessageBox, QPushButton, QSpinBox,
+                               QTextEdit, QTextBrowser, QDialogButtonBox,
+                               QVBoxLayout)
 
 cfg = configparser.ConfigParser()
 cfg.read(os.path.join(os.path.dirname(__file__), 'messenger.ini'))
@@ -96,7 +99,8 @@ class Worker(QObject):
                 self._proc = Popen(cmd, stderr=PIPE, **win_arg)
 
                 for line in self._proc.stderr:
-                    self.std_error.emit(line.decode().strip())
+                    if 'Last message repeated' not in line.decode():
+                        self.std_error.emit(line.decode().strip())
 
             sleep(0.5)
 
@@ -104,6 +108,47 @@ class Worker(QObject):
         if self._proc and self._proc.poll() is None:
             self._proc.terminate()
         self.is_running = False
+
+
+class Examples(QDialog):
+    """
+    Examples Window
+    """
+
+    def __init__(self, parent):
+        super(Examples, self).__init__(parent)
+        self.setWindowTitle("Some Examples")
+        self.resize(500, 340)
+        self.setSizeGripEnabled(True)
+
+        text = (
+            '<h3>Text Functions:</h3>'
+            '<strong>burn timecode: </strong>'
+            '%{pts\\:gmtime\\:0\\:%H\\\\\\:%M\\\\\\:%S}'
+            '<br />'
+            '<strong>print date and time: </strong>'
+            '%{localtime\\:%a %b %d %Y %H\\\\\\:%M\\\\\\:%S}'
+            '<br />'
+
+            )
+
+        self.info = QTextBrowser()
+        self.info.setHtml(text)
+        self.button = QDialogButtonBox()
+        self.button.setOrientation(Qt.Horizontal)
+        self.button.setStandardButtons(QDialogButtonBox.Ok)
+        self.button.clicked.connect(self.close_examples)
+
+        # Create layout and add widgets
+        layout = QVBoxLayout()
+        layout.addWidget(self.info)
+        layout.addWidget(self.button)
+
+        # Set dialog layout
+        self.setLayout(layout)
+
+    def close_examples(self):
+        self.close()
 
 
 class MainForm(QObject):
@@ -128,6 +173,8 @@ class MainForm(QObject):
         action_quit.triggered.connect(self.quit_application)
         action_save = self.window.findChild(QAction, 'action_save')
         action_save.triggered.connect(self.save_preset)
+        action_save = self.window.findChild(QAction, 'action_examples')
+        action_save.triggered.connect(self.open_examples)
 
         # form content
         self.text = self.window.findChild(QTextEdit, 'text_area')
@@ -206,6 +253,10 @@ class MainForm(QObject):
         if level == "warning":
             QMessageBox.warning(self.window, "Warning", message)
 
+    def open_examples(self):
+        examples = Examples(self.window)
+        examples.show()
+
     def change_color(self, btn, text):
         color = QColorDialog.getColor(initial='#ffffff', parent=None,
                                       title='Select Color',
@@ -240,9 +291,12 @@ class MainForm(QObject):
         self.border_w.setValue(preset['boxborderw'])
 
     def get_content(self):
-        text_fmt = self.text.toPlainText().replace('\\', '\\\\\\\\')\
-            .replace("'", "\u2019")\
-            .replace(' ', '\\ ').replace('%', '\\\\%').replace(':', '\\:')
+        if re.match(r'%{.*}', self.text.toPlainText()):
+            text_fmt = self.text.toPlainText()
+        else:
+            text_fmt = self.text.toPlainText().replace('\\', '\\\\\\\\')\
+                .replace("'", "\u2019")\
+                .replace(' ', '\\ ').replace('%', '\\\\%').replace(':', '\\:')
 
         self.check_empty('X', self.pos_x.text())
         self.check_empty('Y', self.pos_y.text())
