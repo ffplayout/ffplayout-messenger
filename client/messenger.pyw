@@ -268,7 +268,7 @@ class MainForm(QObject):
             text.setText('{}@0x{:02x}'.format(color.name(), color.alpha()))
 
     def check_empty(self, key, value):
-        if not value or value == 0 or value == '0':
+        if not value:
             self.show_dialog('warning', 'Value "{}" is empty!'.format(key))
 
     def set_content(self, preset):
@@ -291,7 +291,7 @@ class MainForm(QObject):
         self.border_w.setValue(preset['boxborderw'])
 
     def get_content(self):
-        if re.match(r'%{.*}', self.text.toPlainText()):
+        if re.match(r'.*%{.*}.*', self.text.toPlainText()):
             text_fmt = self.text.toPlainText()
         else:
             text_fmt = self.text.toPlainText().replace('\\', '\\\\\\\\')\
