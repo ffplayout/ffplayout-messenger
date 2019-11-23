@@ -19,6 +19,7 @@ from types import SimpleNamespace
 import zmq
 from PySide2.QtCore import (QCoreApplication, QFile, QObject, QThread, Signal,
                             Slot, Qt)
+from PySide2.QtGui import QIcon
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import (QAction, QApplication, QCheckBox, QColorDialog,
                                QComboBox, QDialog, QInputDialog, QLabel,
@@ -390,6 +391,9 @@ class MainForm(QObject):
 
 def main():
     app = QApplication(sys.argv)
+    app.setWindowIcon(
+        QIcon(os.path.join(os.path.dirname(__file__), 'messenger.ico')))
+
     main_window = MainForm()
     app.aboutToQuit.connect(main_window.quit_application)
     sys.exit(app.exec_())
