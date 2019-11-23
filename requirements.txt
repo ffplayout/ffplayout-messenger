@@ -1,3 +1,4 @@
+CherryPy==18.4.0
 PySide2==5.13.2
 pyzmq==18.1.1
 zmq==0.0.0
