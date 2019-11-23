@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import re
+import requests
 import sys
 from functools import partial
 from logging.handlers import TimedRotatingFileHandler
@@ -30,13 +31,14 @@ from PySide2.QtWidgets import (QAction, QApplication, QCheckBox, QColorDialog,
 cfg = configparser.ConfigParser()
 cfg.read(os.path.join(os.path.dirname(__file__), 'messenger.ini'))
 
-_config = SimpleNamespace(
+_preview = SimpleNamespace(
     color=cfg.get('PREVIEW', 'color'),
     clip=cfg.get('PREVIEW', 'clip'),
     width=cfg.get('PREVIEW', 'width'),
     height=cfg.get('PREVIEW', 'height'),
     font=cfg.get('PREVIEW', 'font'),
-    ffplay=cfg.get('PREVIEW', 'ffplay')
+    ffplay=cfg.get('PREVIEW', 'ffplay'),
+    port=cfg.getint('PREVIEW', 'port')
 )
 
 _log = SimpleNamespace(
@@ -46,7 +48,9 @@ _log = SimpleNamespace(
 
 _server = SimpleNamespace(
     address=cfg.get('SERVER', 'address'),
-    port=cfg.get('SERVER', 'port')
+    port=cfg.getint('SERVER', 'port'),
+    user=cfg.get('SERVER', 'user'),
+    password=cfg.get('SERVER', 'password')
 )
 
 # check if log folder exists and create it if not
@@ -77,11 +81,11 @@ class Worker(QObject):
         self._proc = None
         self._queue = queue
 
-        if _config.clip:
-            self.input = ['-i', _config.clip]
+        if _preview.clip:
+            self.input = ['-i', _preview.clip]
         else:
             self.input = ['-f', 'lavfi', 'color=s={}x{}:c={}'.format(
-                _config.width, _config.height, _config.color)]
+                _preview.width, _preview.height, _preview.color)]
 
     def work(self):
         while self.is_running:
@@ -92,11 +96,11 @@ class Worker(QObject):
                     # prevent terminal open
                     win_arg['creationflags'] = 0x08000000
 
-                drawt = "drawtext=text='':fontfile='{}'".format(_config.font)
-                cmd = ([_config.ffplay, '-hide_banner', '-nostats',
+                drawt = "drawtext=text='':fontfile='{}'".format(_preview.font)
+                cmd = ([_preview.ffplay, '-hide_banner', '-nostats',
                         '-v', 'error']
                        + self.input + ['-vf', "scale='{}:{}',zmq,{}".format(
-                        _config.width, _config.height, drawt)])
+                        _preview.width, _preview.height, drawt)])
                 self._proc = Popen(cmd, stderr=PIPE, **win_arg)
 
                 for line in self._proc.stderr:
@@ -218,6 +222,9 @@ class MainForm(QObject):
         self.play = self.window.findChild(QPushButton, 'button_preview')
         self.play.clicked.connect(self.preview_text)
 
+        self.send = self.window.findChild(QPushButton, 'button_send')
+        self.send.clicked.connect(self.send_request)
+
         # preview worker
         self.filter_queue = Queue()
         self.worker = Worker(self.filter_queue)
@@ -228,7 +235,6 @@ class MainForm(QObject):
 
         # zmq sender
         self.context = zmq.Context()
-        self.port = "5555"
 
         self.list_presets()
 
@@ -354,7 +360,7 @@ class MainForm(QObject):
         sleep(0.5)
 
         socket = self.context.socket(zmq.REQ)
-        socket.connect("tcp://localhost:{}".format(self.port))
+        socket.connect("tcp://localhost:{}".format(_preview.port))
 
         for key, value in self.get_content().items():
             filter_str += "{}='{}':".format(key, value)
@@ -381,6 +387,21 @@ class MainForm(QObject):
                 json.dump(content, outfile, indent=4)
 
             self.list_presets()
+
+    def send_request(self):
+        content = self.get_content()
+
+        try:
+            r = requests.post('{}:{}'.format(_server.address, _server.port),
+                              json={"user": _server.user,
+                                    "password": _server.password,
+                                    "data": content
+                                    },
+                              verify=False, timeout=1.5)
+            logger.info(r.status_code)
+        except requests.exceptions.ReadTimeout:
+            self.show_dialog('error', 'Send drawtext command timeout!')
+            logger.error('Send drawtext command timeout!')
 
     def quit_application(self):
         self.worker.quit()
