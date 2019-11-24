@@ -29,7 +29,7 @@ from PySide2.QtWidgets import (QAction, QApplication, QCheckBox, QColorDialog,
                                QVBoxLayout)
 
 cfg = configparser.ConfigParser()
-cfg.read(os.path.join(os.path.dirname(__file__), 'messenger.ini'))
+cfg.read(os.path.join(os.path.dirname(__file__), 'assets', 'messenger.ini'))
 
 _preview = SimpleNamespace(
     color=cfg.get('PREVIEW', 'color'),
@@ -165,7 +165,7 @@ class MainForm(QObject):
     def __init__(self, parent=None):
         super(MainForm, self).__init__(parent)
         self.root_path = os.path.dirname(__file__)
-        ui_file = QFile(os.path.join(self.root_path, 'messenger.ui'))
+        ui_file = QFile(os.path.join(self.root_path, 'assets', 'messenger.ui'))
         ui_file.open(QFile.ReadOnly)
 
         loader = QUiLoader()
@@ -413,7 +413,8 @@ class MainForm(QObject):
 def main():
     app = QApplication(sys.argv)
     app.setWindowIcon(
-        QIcon(os.path.join(os.path.dirname(__file__), 'messenger.ico')))
+        QIcon(os.path.join(os.path.dirname(__file__), 'assets',
+                           'messenger.ico')))
 
     main_window = MainForm()
     app.aboutToQuit.connect(main_window.quit_application)
