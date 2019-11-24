@@ -1,0 +1,15 @@
+[Unit]
+Description=ffplayout API Server
+Documentation=https://github.com/ossrs/srs/wiki
+After=network.target ffplayout.service
+
+[Service]
+ExecStart=/usr/local/bin/api-server.service
+ExecReload=/bin/kill -1 $MAINPID
+Restart=always
+RestartSec=2
+User=www-data
+Group=www-data
+
+[Install]
+WantedBy=multi-user.target
