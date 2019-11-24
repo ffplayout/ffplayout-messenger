@@ -1,5 +1,5 @@
 # messenger
-ffmpeg can include the libzmq library, this makes it possible to mapiulate filters in real time.
+ffmpeg can include the **libzmq** library, this makes it possible to mapiulate filters in real time.
 
 For now, we only comunicate with the drawtext filter in ffplayout. This give us the option to send text to the stream in any format which are supported from the drawtext filter.
 
@@ -23,3 +23,10 @@ When you add new expressions to the client, you should always test them, before 
 The **client** can be configure with [messenger.ini](./client/assets/messenger.ini)
 
 The **API server** has no config file, you can setup everthing in the script. When there is a need, we can change this later.
+
+### Requirements
+- ffmpeg must be compiled with **libzmq**
+- python 3.6+
+- **cherrypy** and **zmp** python modules on the server side
+- **pyside2** python module on the client side
+- ffplay with libzmq for the client

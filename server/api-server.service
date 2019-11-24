@@ -1,10 +1,9 @@
 [Unit]
 Description=ffplayout API Server
-Documentation=https://github.com/ossrs/srs/wiki
-After=network.target ffplayout.service
+After=network.target
 
 [Service]
-ExecStart=/usr/local/bin/api-server.service
+ExecStart=/usr/local/bin/api-server.py
 ExecReload=/bin/kill -1 $MAINPID
 Restart=always
 RestartSec=2
