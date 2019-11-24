@@ -1,7 +1,7 @@
 TODO:
 -----
-- [ ] load and save presets
+- [x] load and save presets
 - [ ] expression examples
-- [ ] config file
-- [ ] preview with ffplay
+- [x] config file
+- [x] preview with ffplay
 - [ ] scheduler?
