@@ -350,6 +350,10 @@ class MainForm(QObject):
 
     def preview_text(self):
         filter_str = ''
+        if not os.path.isfile(_preview.ffplay):
+            self.show_dialog('error', 'ffplay executable not exists!')
+            return
+
         if not self.worker_thread.isRunning():
             self.worker_thread.start()
 
