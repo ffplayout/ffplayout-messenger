@@ -398,6 +398,12 @@ class MainForm(QObject):
                                     "data": content
                                     },
                               verify=False, timeout=1.5)
+
+            if r.status_code == 200:
+                self.show_dialog('info', 'sending success')
+            else:
+                self.show_dialog('error', 'sending failed')
+
             logger.info(r.status_code)
         except (requests.exceptions.ReadTimeout,
                 requests.exceptions.ConnectTimeout):

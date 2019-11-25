@@ -3,8 +3,9 @@
 
 import json
 
-import cherrypy
 import zmq
+
+import cherrypy
 
 """
 It is highly recommend to use this api server behind a proxy with ssl
@@ -17,33 +18,51 @@ PORT = 8888
 
 ZMQ_ADDRESS = '127.0.0.1'
 ZMQ_PORT = 5555
+REQUEST_TIMEOUT = 1000
+DRAW_TEXT_NODE = 'Parsed_drawtext_4'
 
 
 def send_zmq(data):
-    context = zmq.Context()
-    socket = context.socket(zmq.REQ)
-    socket.setsockopt(zmq.LINGER, 0)
-    socket.connect('tcp://{}:{}'.format(ZMQ_ADDRESS, ZMQ_PORT))
-    filter_str = ''
+    context = zmq.Context(1)
+    client = context.socket(zmq.REQ)
+    print("Connecting to server…")
+    client.connect('tcp://{}:{}'.format(ZMQ_ADDRESS, ZMQ_PORT))
+
+    poll = zmq.Poller()
+    poll.register(client, zmq.POLLIN)
+
+    request = ''
+    reply_msg = ''
 
     for key, value in data.items():
-        filter_str += "{}='{}':".format(key, value)
+        request += "{}='{}':".format(key, value)
 
-    socket.send_string(
-        "Parsed_drawtext_2 reinit " + filter_str.rstrip(':'))
+    request = "{} reinit {}".format(DRAW_TEXT_NODE, request.rstrip(':'))
 
-    poller = zmq.Poller()
-    poller.register(socket, zmq.POLLIN)
-    if poller.poll(1000):
-        print('got message ', socket.recv(zmq.NOBLOCK))
+    print('Sending "{}"'.format(request))
+    client.send_string(request)
+
+    socks = dict(poll.poll(REQUEST_TIMEOUT))
+
+    if socks.get(client) == zmq.POLLIN:
+        reply = client.recv()
+
+        if reply and reply.decode() == '0 Success':
+            print('Server replied OK ({})'.format(reply.decode()))
+            reply_msg = reply.decode()
+        else:
+            print('Malformed reply from server: {}'.format(reply.decode()))
+            reply_msg = reply.decode()
     else:
-        print('error: message timeout')
+        reply_msg = 'No response from server'
+        print(reply_msg)
 
-    message = socket.recv()
+    client.setsockopt(zmq.LINGER, 0)
+    client.close()
+    poll.unregister(client)
 
-    socket.close()
     context.term()
-    return {'Success': message.decode()}
+    return {'Success': reply_msg}
 
 
 def enable_crossdomain():
