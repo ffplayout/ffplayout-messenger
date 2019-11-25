@@ -399,7 +399,8 @@ class MainForm(QObject):
                                     },
                               verify=False, timeout=1.5)
             logger.info(r.status_code)
-        except requests.exceptions.ReadTimeout:
+        except (requests.exceptions.ReadTimeout,
+                requests.exceptions.ConnectTimeout):
             self.show_dialog('error', 'Send drawtext command timeout!')
             logger.error('Send drawtext command timeout!')
 
