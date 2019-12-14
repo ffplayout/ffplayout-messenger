@@ -99,8 +99,11 @@ class Worker(QObject):
                 drawt = "drawtext=text='':fontfile='{}'".format(_preview.font)
                 cmd = ([_preview.ffplay, '-hide_banner', '-nostats',
                         '-v', 'error']
-                       + self.input + ['-vf', "scale='{}:{}',zmq,{}".format(
-                        _preview.width, _preview.height, drawt)])
+                       + self.input + [
+                           '-vf', ("scale='{}:{}',"
+                                   "zmq=b='tcp\\://127.0.0.1\\:{}',{}").format(
+                                       _preview.width, _preview.height,
+                                       _preview.port, drawt)])
                 self._proc = Popen(cmd, stderr=PIPE, **win_arg)
 
                 for line in self._proc.stderr:
@@ -364,7 +367,7 @@ class MainForm(QObject):
         sleep(0.5)
 
         socket = self.context.socket(zmq.REQ)
-        socket.connect("tcp://localhost:{}".format(_preview.port))
+        socket.connect("tcp://127.0.0.1:{}".format(_preview.port))
 
         for key, value in self.get_content().items():
             filter_str += "{}='{}':".format(key, value)

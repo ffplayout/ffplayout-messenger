@@ -19,7 +19,7 @@ PORT = 8888
 ZMQ_ADDRESS = '127.0.0.1'
 ZMQ_PORT = 5555
 REQUEST_TIMEOUT = 1000
-DRAW_TEXT_NODE = 'Parsed_drawtext_4'
+DRAW_TEXT_NODE = 'Parsed_drawtext_2'
 
 
 def send_zmq(data):
@@ -124,7 +124,7 @@ if __name__ == '__main__':
         }
     }
     cherrypy.__version__ = ''
-    cherrypy.config.update({  # 'environment': 'production',
+    cherrypy.config.update({'environment': 'production',
                             # 'log.error_file': 'site.log',
                             'server.socket_host': INTERFACE,
                             'server.socket_port': PORT,
