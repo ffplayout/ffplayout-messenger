@@ -7,7 +7,6 @@ import json
 import logging
 import os
 import re
-import requests
 import sys
 from functools import partial
 from logging.handlers import TimedRotatingFileHandler
@@ -17,15 +16,16 @@ from subprocess import PIPE, Popen
 from time import sleep
 from types import SimpleNamespace
 
+import requests
 import zmq
-from PySide2.QtCore import (QCoreApplication, QFile, QObject, QThread, Signal,
-                            Slot, Qt)
+from PySide2.QtCore import (QCoreApplication, QFile, QObject, Qt, QThread,
+                            Signal, Slot)
 from PySide2.QtGui import QIcon
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import (QAction, QApplication, QCheckBox, QColorDialog,
-                               QComboBox, QDialog, QInputDialog, QLabel,
-                               QLineEdit, QMessageBox, QPushButton, QSpinBox,
-                               QTextEdit, QTextBrowser, QDialogButtonBox,
+                               QComboBox, QDialog, QDialogButtonBox,
+                               QInputDialog, QLabel, QLineEdit, QMessageBox,
+                               QPushButton, QSpinBox, QTextBrowser, QTextEdit,
                                QVBoxLayout)
 
 cfg = configparser.ConfigParser()
@@ -109,13 +109,12 @@ class Worker(QObject):
                 for line in self._proc.stderr:
                     if 'Last message repeated' not in line.decode():
                         self.std_error.emit(line.decode().strip())
-
             sleep(0.5)
 
-    def quit(self):
+    def stop(self):
+        self.is_running = False
         if self._proc and self._proc.poll() is None:
             self._proc.terminate()
-        self.is_running = False
 
 
 class Examples(QDialog):
@@ -418,7 +417,8 @@ class MainForm(QObject):
             logger.error('Send drawtext command timeout!')
 
     def quit_application(self):
-        self.worker.quit()
+        self.worker.stop()
+        self.filter_queue.put(False)
         self.worker_thread.quit()
         self.worker_thread.wait()
         QCoreApplication.quit()
