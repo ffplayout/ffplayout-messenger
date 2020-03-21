@@ -3,9 +3,8 @@
 
 import json
 
-import zmq
-
 import cherrypy
+import zmq
 
 """
 It is highly recommend to use this api server behind a proxy with ssl
