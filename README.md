@@ -30,3 +30,17 @@ The **API server** has no config file, you can setup everthing in the script. Wh
 - **cherrypy** and **zmp** python modules on the server side
 - **pyside2** python module on the client side
 - ffplay with libzmq for the client
+
+
+### nginx examples
+
+```
+server {
+    listen	 80;
+    server_name  example.org;
+
+    location /messenger {
+        proxy_pass http://127.0.0.1:8888/;
+    }
+}
+```
