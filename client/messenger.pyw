@@ -28,6 +28,9 @@ from PySide2.QtWidgets import (QAction, QApplication, QCheckBox, QColorDialog,
                                QPushButton, QSpinBox, QTextBrowser, QTextEdit,
                                QVBoxLayout)
 
+import urllib3
+urllib3.disable_warnings()
+
 cfg = configparser.ConfigParser()
 cfg.read(os.path.join(os.path.dirname(__file__), 'assets', 'messenger.ini'))
 
@@ -48,7 +51,8 @@ _log = SimpleNamespace(
 
 _server = SimpleNamespace(
     address=cfg.get('SERVER', 'address'),
-    port=cfg.getint('SERVER', 'port'),
+    location=cfg.get('SERVER', 'location'),
+    port=cfg.get('SERVER', 'port'),
     user=cfg.get('SERVER', 'user'),
     password=cfg.get('SERVER', 'password')
 )
@@ -398,7 +402,9 @@ class MainForm(QObject):
         content = self.get_content()
 
         try:
-            r = requests.post('{}:{}'.format(_server.address, _server.port),
+            r = requests.post('{}:{}{}'.format(_server.address,
+                                               _server.port,
+                                               _server.location),
                               json={"user": _server.user,
                                     "password": _server.password,
                                     "data": content
