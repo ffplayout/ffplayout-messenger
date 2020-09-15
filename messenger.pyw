@@ -51,7 +51,6 @@ _log = SimpleNamespace(
 
 _server = SimpleNamespace(
     address=cfg.get('SERVER', 'address'),
-    location=cfg.get('SERVER', 'location'),
     port=cfg.get('SERVER', 'port'),
     user=cfg.get('SERVER', 'user'),
     password=cfg.get('SERVER', 'password')
@@ -69,6 +68,21 @@ file_handler = TimedRotatingFileHandler(_log.path, when='midnight',
                                         backupCount=5)
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
+
+
+def auth():
+    login = {'username': _server.user,
+             'password': _server.password}
+
+    if _server.port:
+        url = '{}:{}'.format(_server.address, _server.port)
+    else:
+        url = _server.address
+
+    req = requests.post(
+        '{}/auth/token/'.format(url), data=login)
+    token = req.json()
+    return token['access']
 
 
 class Worker(QObject):
@@ -401,22 +415,24 @@ class MainForm(QObject):
     def send_request(self):
         content = self.get_content()
 
-        try:
-            r = requests.post('{}:{}{}'.format(_server.address,
-                                               _server.port,
-                                               _server.location),
-                              json={"user": _server.user,
-                                    "password": _server.password,
-                                    "data": content
-                                    },
-                              verify=False, timeout=1.5)
+        if _server.port:
+            url = '{}:{}'.format(_server.address, _server.port)
+        else:
+            url = _server.address
 
-            if r.status_code == 200:
+        try:
+            req = requests.post(
+                '{}/api/player/send/message/'.format(url),
+                data=json.dumps({'data': content}),
+                headers={'Authorization': 'Bearer {}'.format(auth()),
+                         'content-type': 'application/json'})
+
+            if req.status_code == 200:
                 self.show_dialog('info', 'sending success')
             else:
                 self.show_dialog('error', 'sending failed')
 
-            logger.info(r.status_code)
+            logger.info(req.status_code)
         except (requests.exceptions.ReadTimeout,
                 requests.exceptions.ConnectTimeout):
             self.show_dialog('error', 'Send drawtext command timeout!')
