@@ -4,12 +4,10 @@
 import configparser
 import glob
 import json
-import logging
 import os
 import re
 import sys
 from functools import partial
-from logging.handlers import TimedRotatingFileHandler
 from platform import system
 from queue import Queue
 from subprocess import PIPE, Popen
@@ -17,7 +15,7 @@ from time import sleep
 from types import SimpleNamespace
 
 import requests
-import zmq
+import urllib3
 from PySide2.QtCore import (QCoreApplication, QFile, QObject, Qt, QThread,
                             Signal, Slot)
 from PySide2.QtGui import QIcon
@@ -28,7 +26,8 @@ from PySide2.QtWidgets import (QAction, QApplication, QCheckBox, QColorDialog,
                                QPushButton, QSpinBox, QTextBrowser, QTextEdit,
                                QVBoxLayout)
 
-import urllib3
+import zmq
+
 urllib3.disable_warnings()
 
 cfg = configparser.ConfigParser()
@@ -44,30 +43,12 @@ _preview = SimpleNamespace(
     port=cfg.getint('PREVIEW', 'port')
 )
 
-_log = SimpleNamespace(
-    level=cfg.get('LOGGING', 'log_level'),
-    path=os.path.join(os.path.dirname(__file__), 'log', 'messenger.log')
-)
-
 _server = SimpleNamespace(
     address=cfg.get('SERVER', 'address'),
     port=cfg.get('SERVER', 'port'),
     user=cfg.get('SERVER', 'user'),
     password=cfg.get('SERVER', 'password')
 )
-
-# check if log folder exists and create it if not
-if not os.path.isdir(os.path.dirname(_log.path)):
-    os.mkdir(os.path.dirname(_log.path))
-
-
-logger = logging.getLogger('messenger')
-logger.setLevel(_log.level)
-formatter = logging.Formatter('[%(asctime)s] [%(levelname)s]  %(message)s')
-file_handler = TimedRotatingFileHandler(_log.path, when='midnight',
-                                        backupCount=5)
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
 
 
 def auth():
@@ -264,7 +245,6 @@ class MainForm(QObject):
 
     @Slot(str)
     def preview_log(self, log):
-        logger.error(log)
         self.show_dialog(
             'error', '<strong>drawtext syntax error:</strong><br /> {}'.format(
                 log))
@@ -389,13 +369,8 @@ class MainForm(QObject):
         for key, value in self.get_content().items():
             filter_str += "{}='{}':".format(key, value)
 
-        logger.debug(filter_str)
-
         socket.send_string(
             "Parsed_drawtext_2 reinit " + filter_str.rstrip(':'))
-
-        message = socket.recv()
-        logger.info("Received reply: {}".format(message.decode()))
 
     def save_preset(self):
         preset, ok = QInputDialog.getText(self.window, 'Save Preset',
@@ -432,11 +407,9 @@ class MainForm(QObject):
             else:
                 self.show_dialog('error', 'sending failed')
 
-            logger.info(req.status_code)
         except (requests.exceptions.ReadTimeout,
                 requests.exceptions.ConnectTimeout):
             self.show_dialog('error', 'Send drawtext command timeout!')
-            logger.error('Send drawtext command timeout!')
 
     def quit_application(self):
         self.worker.stop()
