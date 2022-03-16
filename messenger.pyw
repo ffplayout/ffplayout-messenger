@@ -398,7 +398,7 @@ class MainForm(QObject):
         try:
             req = requests.post(
                 '{}/api/player/send/message/'.format(url),
-                data=json.dumps({'data': content}),
+                data=json.dumps({'data': content, 'channel': 1}),
                 headers={'Authorization': 'Bearer {}'.format(auth()),
                          'content-type': 'application/json'})
 
